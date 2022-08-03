@@ -13,6 +13,7 @@ class BlockingQueue : std::deque<T> {
         std::deque<std::shared_ptr<T>> q;
 
     public:
+        using value_type = T;
         BlockingQueue();
         bool is_empty() const;
         void push(std::shared_ptr<T> value);

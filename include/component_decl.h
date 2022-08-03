@@ -4,15 +4,29 @@
 #include "blocking_queue.h"
 #include "blocking_queue_decl.h"
 
-template<typename out, typename... in>
+template <typename out, typename... in>
 class Component {
     private:
-        BlockingQueue<out>& output;
-        std::function<out(const in&...)> work_function;
-        std::tuple<BlockingQueue<in>&...> inputs;
+        using function_type = std::function<
+            typename out::value_type(
+                const typename in::value_type&...
+            )
+        >;
+
+        function_type work_function;
+
+        out& output;
+        std::tuple<in&...> inputs;
 
     public:
-        Component(BlockingQueue<out>& output, std::function<out(const in&...)> work_function, BlockingQueue<in>&... inputs);
+        Component(function_type work_function);
 
-        void operator()(std::atomic_bool &sig);
+        void operator()(std::atomic_bool& sig, 
+                        out& output, 
+                        in&... inputs);
+
+        void bindOutput(out& o);
+
+        template <typename CompRef>
+        void bindInput();
 };
