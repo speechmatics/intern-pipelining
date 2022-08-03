@@ -21,12 +21,10 @@ class Component {
     public:
         Component(function_type work_function);
 
-        void operator()(std::atomic_bool& sig, 
-                        out& output, 
-                        in&... inputs);
+        void operator()(std::atomic_bool& sig);
 
         void bindOutput(out& o);
 
         template <typename CompRef>
-        void bindInput();
+        void bindInput(std::tuple_element_t<CompRef::N, decltype(inputs)>& i);
 };
