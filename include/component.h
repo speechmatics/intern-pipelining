@@ -14,13 +14,13 @@ void Component<out, in...>::operator()(std::atomic_bool& sig) {
 }
 
 template <typename out, typename... in>
-void Component<out, in...>::bindOutput(out& o) {
-    output = o;
+void Component<out, in...>::bindOutput(std::shared_ptr<out> o) {
+    output = std::move(o);
 }
 
 template <typename out, typename... in>
 template <typename CompRef>
 void Component<out, in...>::bindInput(
-    std::tuple_element_t<CompRef::N, decltype(inputs)>& i) {
-    std::get<CompRef::N>(inputs) = CompRef::comp_ref;
+    std::shared_ptr<std::tuple_element_t<CompRef::N, decltype(inputs)>> i) {
+    std::get<CompRef::N>(inputs) = std::move(i);
 }

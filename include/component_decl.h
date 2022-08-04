@@ -1,3 +1,4 @@
+#include <memory>
 #include <tuple>
 #include <functional>
 #include <atomic>
@@ -15,16 +16,16 @@ class Component {
 
         function_type work_function;
 
-        out& output;
-        std::tuple<in&...> inputs;
+        std::shared_ptr<out> output;
+        std::tuple<std::shared_ptr<in>...> inputs;
 
     public:
         Component(function_type work_function);
 
         void operator()(std::atomic_bool& sig);
 
-        void bindOutput(out& o);
+        void bindOutput(std::shared_ptr<out> o);
 
         template <typename CompRef>
-        void bindInput(std::tuple_element_t<CompRef::N, decltype(inputs)>& i);
+        void bindInput(std::shared_ptr<std::tuple_element_t<CompRef::N, decltype(inputs)>> i);
 };

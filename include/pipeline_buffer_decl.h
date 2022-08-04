@@ -1,3 +1,4 @@
+#include <memory>
 #include <vector>
 #include "blocking_queue.h"
 #include "blocking_queue_decl.h"
@@ -12,7 +13,7 @@ struct component_input_ref {
 template <typename T, typename in_p, typename... CompRefs>
 class PipelineBuffer {
     private:
-        BlockingQueue<T> queue;
+        std::shared_ptr<BlockingQueue<T>> queue;
         std::tuple<CompRefs...> refs;
     public:
         using value_type = T;
