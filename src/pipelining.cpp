@@ -1,6 +1,7 @@
 #include "blocking_queue.h"
 #include "pipeline_stages.h"
 #include "component.h"
+#include "component_gen_only.h"
 #include <cstdio>
 #include <exception>
 #include <iostream>
@@ -15,7 +16,14 @@
 
 constexpr int num_loops = 1000000000;
 
+int gen_1() { return 1; };
+
 int work(int x) { return x + 1; };
+
+int print_input(int x) {
+  printf("%i\n", x);
+  return 0;
+}
 
 int main() {
   EASY_PROFILER_ENABLE;
@@ -24,9 +32,17 @@ int main() {
 
   std::atomic_bool sig{true};
 
+  std::function<int()> Gen_1 = gen_1;
   std::function<int(int)> Work = work;
 
-  Component<BlockingQueue<int>, BlockingQueue<int>> stage_2(Work);
+  ComponentGenOnly<BlockingQueue<int>> start{Gen_1};
+
+  std::shared_ptr<BlockingQueue<int>> buffer_1 = std::make_shared<BlockingQueue<int>>();
+  start.bindOutput(buffer_1);
+
+  start(sig);
+  // std::thread Start{start, std::ref(sig)};
+  // TestComponentStdout<BlockingQueue<int>, BlockingQueue<int>> stage_3(Work);
 
   // std::thread stage_1{stage_one, std::ref(input), std::ref(out_1),
   //                     std::ref(sig)};

@@ -8,7 +8,7 @@ template <typename out, typename... in>
 void Component<out, in...>::operator()(std::atomic_bool& sig) {
     while(sig) {
         std::apply([&](auto&... queues) {
-            output.push(work_function(queues.pop(sig)...));
+            output->push(work_function(queues->pop(sig)...));
         }, inputs);
     }
 }

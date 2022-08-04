@@ -10,7 +10,7 @@ find_package(easy_profiler REQUIRED)
 
 set(target_sources 
         pipelining.cpp 
-        pipeline_stages.cpp
+        # pipeline_stages.cpp
 )
 
 list(TRANSFORM target_sources PREPEND "src/")

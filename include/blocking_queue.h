@@ -16,7 +16,7 @@ bool BlockingQueue<T>::is_empty() const {
 }
 
 template <typename T>
-void BlockingQueue<T>::push(std::shared_ptr<T> value) {
+void BlockingQueue<T>::push(T value) {
     {
         std::lock_guard<std::mutex> lock{m};
         q.push_back(value);
@@ -25,7 +25,7 @@ void BlockingQueue<T>::push(std::shared_ptr<T> value) {
 }
 
 template <typename T>
-std::shared_ptr<T> BlockingQueue<T>::pop(std::atomic_bool& sig) {
+T BlockingQueue<T>::pop(std::atomic_bool& sig) {
     std::unique_lock<std::mutex> lock{m};
     while (q.empty()) {
         if (!sig) {
@@ -33,7 +33,7 @@ std::shared_ptr<T> BlockingQueue<T>::pop(std::atomic_bool& sig) {
         }
         cv.wait(lock);
     }
-    std::shared_ptr<T> element = std::move(q.front());
+    T element = q.front();
     q.pop_front();
     return element;
 }

@@ -10,13 +10,13 @@ class BlockingQueue : std::deque<T> {
     private:
         mutable std::mutex m;
         mutable std::condition_variable cv;
-        std::deque<std::shared_ptr<T>> q;
+        std::deque<T> q;
 
     public:
         using value_type = T;
         BlockingQueue();
         bool is_empty() const;
-        void push(std::shared_ptr<T> value);
-        std::shared_ptr<T> pop(std::atomic_bool& sig);
+        void push(T value);
+        T pop(std::atomic_bool& sig);
         void cv_notify_all();
 };
