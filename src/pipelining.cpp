@@ -5,6 +5,7 @@
 #include "component_gen_only.h"
 #include "component_consume_only.h"
 #include "pipeline_buffer_decl.h"
+#include <chrono>
 #include <cstdio>
 #include <exception>
 #include <iostream>
@@ -17,9 +18,12 @@
 
 #include <easy/profiler.h>
 
-constexpr int num_loops = 1000000000;
+constexpr int num_loops = 100000;
+int state = 0;
 
-int gen_1() { return 1; };
+int gen_1() { 
+  return state++;
+};
 
 int work(int x) { return x + 1; };
 
@@ -55,7 +59,13 @@ int main() {
   std::thread Start{start, std::ref(sig)};
   std::thread WorkThread{work_component, std::ref(sig)};
   std::thread End{end_component, std::ref(sig)};
+
+  std::this_thread::sleep_for(std::chrono::seconds(2));
+  sig = false;
+
   Start.join();
+  WorkThread.join();
+  End.join();
 
   // sig = false;
   // input.cv_notify_all();
