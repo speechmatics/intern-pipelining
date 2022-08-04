@@ -4,6 +4,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
+#include <optional>
 
 template <typename T>
 class BlockingQueue : std::deque<T> {
@@ -17,6 +18,6 @@ class BlockingQueue : std::deque<T> {
         BlockingQueue();
         bool is_empty() const;
         void push(T value);
-        T pop(std::atomic_bool& sig);
+        std::optional<T> pop(std::atomic_bool& sig);
         void cv_notify_all();
 };

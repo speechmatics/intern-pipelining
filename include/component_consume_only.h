@@ -9,7 +9,16 @@ template <typename... in>
 void ComponentConsumeOnly<in...>::operator()(std::atomic_bool& sig) {
     while(sig) {
         std::apply([&](auto&... queues) {
-            work_function(queues->pop(sig)...);
+            auto args = std::make_tuple(queues->pop(sig)...);
+            bool all_have_values = std::apply([&](auto&... data_optionals) {
+                return (data_optionals.has_value() && ...);
+            }, args);
+            if (!all_have_values) {
+                return;
+            }
+            std::apply([&](auto&... data) {
+                work_function(*data...);
+            }, args);
         }, inputs);
     }
 }

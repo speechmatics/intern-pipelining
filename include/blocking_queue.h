@@ -25,11 +25,11 @@ void BlockingQueue<T>::push(T value) {
 }
 
 template <typename T>
-T BlockingQueue<T>::pop(std::atomic_bool& sig) {
+std::optional<T> BlockingQueue<T>::pop(std::atomic_bool& sig) {
     std::unique_lock<std::mutex> lock{m};
     while (q.empty()) {
         if (!sig) {
-            return nullptr;
+            return {};
         }
         cv.wait(lock);
     }

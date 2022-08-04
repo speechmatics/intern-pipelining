@@ -28,5 +28,5 @@ class Component {
         void bindOutput(std::shared_ptr<out> o);
 
         template <typename CompRef>
-        void bindInput(std::shared_ptr<std::tuple_element_t<CompRef::N, decltype(inputs)>> i);
+        void bindInput(std::shared_ptr<std::tuple_element_t<CompRef::input_num, decltype(inputs)>> i);
 };

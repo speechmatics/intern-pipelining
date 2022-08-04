@@ -22,6 +22,6 @@ void Component<out, in...>::bindOutput(std::shared_ptr<out> o) {
 template <typename out, typename... in>
 template <typename CompRef>
 void Component<out, in...>::bindInput(
-    std::shared_ptr<std::tuple_element_t<CompRef::N, decltype(inputs)>> i) {
-    std::get<CompRef::N>(inputs) = std::move(i);
+    std::shared_ptr<std::tuple_element_t<CompRef::input_num, decltype(inputs)>> i) {
+    std::get<CompRef::input_num>(inputs) = std::move(i);
 }
