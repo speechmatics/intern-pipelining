@@ -24,3 +24,5 @@ message( ${CMAKE_CURRENT_SOURCE_DIR} )
 target_include_directories(Pipelining PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_link_libraries(Pipelining PRIVATE Threads::Threads easy_profiler)
+
+set_property(TARGET Pipelining PROPERTY CXX_STANDARD 17)

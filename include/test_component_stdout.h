@@ -6,6 +6,6 @@ void TestComponentStdout<out, in...>::operator()(std::atomic_bool& sig){
     while(sig) {
         std::apply([&](auto&... queues) {
             work_function(queues.pop(sig)...);
-        }, Component::inputs);
+        }, TestComponentStdout<out, in...>::Component::inputs);
     }
 }
