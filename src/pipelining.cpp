@@ -1,4 +1,5 @@
 #include "blocking_queue.h"
+#include "component_decl.h"
 #include "pipeline_stages.h"
 #include "component.h"
 #include "component_gen_only.h"
@@ -40,25 +41,21 @@ int main() {
   std::shared_ptr<BlockingQueue<int>> buffer_1 = std::make_shared<BlockingQueue<int>>();
   start.bindOutput(buffer_1);
 
+  Component<BlockingQueue<int>, BlockingQueue<int>> work_component{Work};
+
+  std::shared_ptr<BlockingQueue<int>> buffer_2 = std::make_shared<BlockingQueue<int>>();
+  work_component.bindInput<component_input_ref<0, Component<BlockingQueue<int>, BlockingQueue<int>>>>(buffer_1);
+  work_component.bindOutput(buffer_2);
+
   ComponentConsumeOnly<BlockingQueue<int>> end_component{Print_Input};
 
   component_input_ref<0L, ComponentConsumeOnly<BlockingQueue<int>>> end_ref{end_component};
-  end_component.bindInput<component_input_ref<0, ComponentConsumeOnly<BlockingQueue<int>>>>(buffer_1);
+  end_component.bindInput<component_input_ref<0, ComponentConsumeOnly<BlockingQueue<int>>>>(buffer_2);
 
   std::thread Start{start, std::ref(sig)};
+  std::thread WorkThread{work_component, std::ref(sig)};
   std::thread End{end_component, std::ref(sig)};
   Start.join();
-  // TestComponentStdout<BlockingQueue<int>, BlockingQueue<int>> stage_3(Work);
-
-  // std::thread stage_1{stage_one, std::ref(input), std::ref(out_1),
-  //                     std::ref(sig)};
-  // std::thread stage_2{stage_two, std::ref(out_1), std::ref(out_2),
-  //                     std::ref(sig)};
-  // std::thread stage_3{stage_three, std::ref(out_2), std::ref(sig)};
-
-  // for (int i = 0; i < num_loops; ++i) {
-  //   input.push(std::make_shared<int>(i));
-  // }
 
   // sig = false;
   // input.cv_notify_all();
