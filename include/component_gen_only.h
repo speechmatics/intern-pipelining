@@ -1,6 +1,6 @@
+#pragma once
 #include <tuple>
 #include "component_gen_only_decl.h"
-#include <cstdio>
 
 template <typename out>
 ComponentGenOnly<out>::ComponentGenOnly(function_type work_function) : work_function{std::move(work_function)} {};

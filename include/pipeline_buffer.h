@@ -1,3 +1,4 @@
+#pragma once
 #include "pipeline_buffer_decl.h"
 #include <memory>
 
