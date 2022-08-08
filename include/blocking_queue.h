@@ -39,6 +39,19 @@ std::optional<T> BlockingQueue<T>::pop(std::atomic_bool& sig) {
 }
 
 template <typename T>
+std::optional<T> BlockingQueue<T>::peek(std::atomic_bool& sig) {
+    std::unique_lock<std::mutex> lock{m};
+    while (q.empty()) {
+        if (!sig) {
+            return {};
+        }
+        cv.wait(lock);
+    }
+    T element = q.front();
+    return element;
+}
+
+template <typename T>
 void BlockingQueue<T>::cv_notify_all() {
     cv.notify_all();
 }
