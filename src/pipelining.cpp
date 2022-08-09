@@ -41,14 +41,15 @@ int main() {
   std::function<int(int)> Work = work;
   std::function<void(int)> Print_Input = print_input;
 
-  Component<BlockingQueue<int>> start{Gen_1};
+  Component<PipelineBuffer<int>> start{Gen_1};
 
-  ComponentConsumeOnly<BlockingQueue<int>> end_component{Print_Input};
+  ComponentConsumeOnly<PipelineBuffer<int>> end_component{Print_Input};
 
-  component_input_ref<0L, ComponentConsumeOnly<BlockingQueue<int>>> end_ref{end_component};
-  component_output_ref<Component<BlockingQueue<int>>> start_ref{start};
+  component_input_ref<0L, ComponentConsumeOnly<PipelineBuffer<int>>> end_ref{end_component};
+  component_output_ref<Component<PipelineBuffer<int>>> start_ref{start};
 
-  auto pb = PipelineBuffer<int, int, component_output_ref<Component<BlockingQueue<int>>>, component_input_ref<0L, ComponentConsumeOnly<BlockingQueue<int>>>>::PipelineBuffer_factory(start_ref, end_ref);
+  auto pb = PipelineBuffer<int>::PipelineBuffer_factory<component_output_ref<Component<PipelineBuffer<int>>>,
+                                                        component_input_ref<0L, ComponentConsumeOnly<PipelineBuffer<int>>>>(start_ref, end_ref);
 
   std::thread Start{start, std::ref(sig)};
   // std::thread WorkThread{work_component, std::ref(sig)};

@@ -21,6 +21,8 @@ class Component {
         std::tuple<std::shared_ptr<in>...> inputs;
 
     public:
+        using output_value_type = typename out::value_type;
+
         Component(function_type work_function);
 
         void operator()(std::atomic_bool& sig);

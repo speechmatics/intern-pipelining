@@ -4,24 +4,22 @@
 #include <memory>
 #include <mutex>
 
-template <typename T, typename in_p, typename ProdRef, typename... CompRefs>
-PipelineBuffer<T, in_p, ProdRef, CompRefs...>::
+template <typename T>
+template <typename ProdRef, typename... CompRefs>
+PipelineBuffer<T>::
     PipelineBuffer(ProdRef producer,
                    CompRefs... consumers) :
                    queue{std::make_shared<BlockingQueue<T>>()},
-                   refs{consumers...} {
-                    producer.prod_ref.bindOutput(queue);
-                    ((consumers.comp_ref.template bindInput<consumers>(queue)), ...);
-                   }
+                   no_subscribers{sizeof... (CompRefs)} {}
 
-template <typename T, typename in_p, typename ProdRef, typename... CompRefs>
-void PipelineBuffer<T, in_p, ProdRef, CompRefs...>::
+template <typename T>
+void PipelineBuffer<T>::
     push(T value) {
         queue->push(value);
     }
 
-template <typename T, typename in_p, typename ProdRef, typename... CompRefs>
-std::optional<T> PipelineBuffer<T, in_p, ProdRef, CompRefs...>::
+template <typename T>
+std::optional<T> PipelineBuffer<T>::
     pop(std::atomic_bool& sig) {
         no_subscribers_finished++;
         cond_var.notify_all();
@@ -40,10 +38,14 @@ std::optional<T> PipelineBuffer<T, in_p, ProdRef, CompRefs...>::
         }
 }
 
-template <typename T, typename in_p, typename ProdRef, typename... CompRefs>
-std::shared_ptr<PipelineBuffer<T, in_p, ProdRef, CompRefs...>> PipelineBuffer<T, in_p, ProdRef, CompRefs...>::
+template <typename T>
+template <typename ProdRef, typename... CompRefs>
+std::shared_ptr<PipelineBuffer<T>> PipelineBuffer<T>::
     PipelineBuffer_factory(ProdRef producer,
                             CompRefs... consumers) {
-                            return std::make_shared<PipelineBuffer<T, in_p, ProdRef, CompRefs...>>(producer, consumers...);
-                            } 
+                            std::shared_ptr<PipelineBuffer<T>> new_pipeline_buffer = std::make_shared<PipelineBuffer<T>>(producer, consumers...);
+                            producer.prod_ref.bindOutput(new_pipeline_buffer);
+                            ((consumers.comp_ref.template bindInput<consumers>(new_pipeline_buffer)), ...);
+                            return new_pipeline_buffer;
+                            }
     
