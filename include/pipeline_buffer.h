@@ -30,12 +30,14 @@ std::optional<T> PipelineBuffer<T>::
             }
             cond_var.wait(lock);
         }
-        T val = queue.peek(sig);
+        std::optional<T> val = queue->peek(sig);
+        if (!val.has_value()) return val;
         if (++no_subscribers_ready == no_subscribers) {
-            queue.pop(sig);
+            queue->pop(sig);
             no_subscribers_finished = 0;
             no_subscribers_ready = 0;
         }
+        return val;
 }
 
 template <typename T>
