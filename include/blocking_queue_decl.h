@@ -19,5 +19,6 @@ class BlockingQueue : std::deque<T> {
         bool is_empty() const;
         void push(T value);
         std::optional<T> pop(std::atomic_bool& sig);
+        std::optional<T> peek(std::atomic_bool& sig);
         void cv_notify_all();
 };

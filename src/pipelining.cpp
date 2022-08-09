@@ -5,6 +5,7 @@
 #include "component_gen_only.h"
 #include "component_consume_only.h"
 #include "pipeline_buffer_decl.h"
+#include "pipeline_buffer.h"
 #include <chrono>
 #include <cstdio>
 #include <exception>
@@ -19,13 +20,13 @@
 #include <easy/profiler.h>
 
 constexpr int num_loops = 100000;
-int state = 0;
 
 int gen_1() { 
+  static int state = 0;
   return state++;
 };
 
-int work(int x) { return x + 1; };
+int work(int x) { return x * 2; };
 
 void print_input(int x) { printf("%i\n", x); }
 
@@ -40,24 +41,26 @@ int main() {
   std::function<int(int)> Work = work;
   std::function<void(int)> Print_Input = print_input;
 
-  ComponentGenOnly<BlockingQueue<int>> start{Gen_1};
+  Component<PipelineBuffer<int>> start_component{Gen_1};
 
-  std::shared_ptr<BlockingQueue<int>> buffer_1 = std::make_shared<BlockingQueue<int>>();
-  start.bindOutput(buffer_1);
+  Component<PipelineBuffer<int>, PipelineBuffer<int>> middle_component{Work};
 
-  Component<BlockingQueue<int>, BlockingQueue<int>> work_component{Work};
+  ComponentConsumeOnly<PipelineBuffer<int>> end_component{Print_Input};
 
-  std::shared_ptr<BlockingQueue<int>> buffer_2 = std::make_shared<BlockingQueue<int>>();
-  work_component.bindInput<component_input_ref<0, Component<BlockingQueue<int>, BlockingQueue<int>>>>(buffer_1);
-  work_component.bindOutput(buffer_2);
+  component_output_ref<Component<PipelineBuffer<int>>> start_ref{start_component};
 
-  ComponentConsumeOnly<BlockingQueue<int>> end_component{Print_Input};
+  component_input_ref<0L, Component<PipelineBuffer<int>, PipelineBuffer<int>>> middle_input_ref{middle_component};
+  component_output_ref<Component<PipelineBuffer<int>, PipelineBuffer<int>>> middle_output_ref{middle_component};
 
-  component_input_ref<0L, ComponentConsumeOnly<BlockingQueue<int>>> end_ref{end_component};
-  end_component.bindInput<component_input_ref<0, ComponentConsumeOnly<BlockingQueue<int>>>>(buffer_2);
+  component_input_ref<0L, ComponentConsumeOnly<PipelineBuffer<int>>> end_ref{end_component};
+  
 
-  std::thread Start{start, std::ref(sig)};
-  std::thread WorkThread{work_component, std::ref(sig)};
+  auto pb = PipelineBuffer<int>::PipelineBuffer_factory(start_ref, middle_input_ref);
+
+  auto pb2 = PipelineBuffer<int>::PipelineBuffer_factory(middle_output_ref, end_ref);
+
+  std::thread Start{start_component, std::ref(sig)};
+  std::thread WorkThread{middle_component, std::ref(sig)};
   std::thread End{end_component, std::ref(sig)};
 
   std::this_thread::sleep_for(std::chrono::seconds(2));

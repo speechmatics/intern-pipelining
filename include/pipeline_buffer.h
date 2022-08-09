@@ -1,13 +1,53 @@
 #pragma once
+#include "blocking_queue_decl.h"
 #include "pipeline_buffer_decl.h"
 #include <memory>
+#include <mutex>
 
-template <typename T, typename in_p, typename... CompRefs>
-PipelineBuffer<T, in_p, CompRefs...>::
-    PipelineBuffer(Component<T, in_p>& producer,
-                   CompRefs... consumers) :
+template <typename T>
+template <typename ProdRef, typename... CompRef>
+PipelineBuffer<T>::
+    PipelineBuffer(ProdRef producer,
+                   CompRef... consumers) :
                    queue{std::make_shared<BlockingQueue<T>>()},
-                   refs{consumers...} {
-                    producer.bindOutput(queue);
-                    ((consumers.comp_ref.bindInput<consumers>(queue)), ...);
-                   }
+                   no_subscribers{sizeof... (CompRef)} {}
+
+template <typename T>
+void PipelineBuffer<T>::
+    push(T value) {
+        queue->push(value);
+    }
+
+template <typename T>
+std::optional<T> PipelineBuffer<T>::
+    pop(std::atomic_bool& sig) {
+        no_subscribers_finished++;
+        cond_var.notify_all();
+        std::unique_lock<std::mutex> lock{mut};
+        while (no_subscribers_finished < no_subscribers) {
+            if (!sig) {
+                return {};
+            }
+            cond_var.wait(lock);
+        }
+        std::optional<T> val = queue->peek(sig);
+        if (!val.has_value()) return val;
+        if (++no_subscribers_ready == no_subscribers) {
+            queue->pop(sig);
+            no_subscribers_finished = 0;
+            no_subscribers_ready = 0;
+        }
+        return val;
+}
+
+template <typename T>
+template <typename ProdRef, typename... CompRef>
+std::shared_ptr<PipelineBuffer<T>> PipelineBuffer<T>::
+    PipelineBuffer_factory(ProdRef producer,
+                            CompRef... consumers) {
+                            std::shared_ptr<PipelineBuffer<T>> new_pipeline_buffer = std::make_shared<PipelineBuffer<T>>(producer, consumers...);
+                            producer.prod_ref.bindOutput(new_pipeline_buffer);
+                            ((consumers.comp_ref.template bindInput<CompRef>(new_pipeline_buffer)), ...);
+                            return new_pipeline_buffer;
+                            }
+    
