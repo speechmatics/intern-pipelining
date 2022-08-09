@@ -5,12 +5,12 @@
 #include <mutex>
 
 template <typename T>
-template <typename ProdRef, typename... CompRefs>
+template <typename ProdRef, typename... CompRef>
 PipelineBuffer<T>::
     PipelineBuffer(ProdRef producer,
-                   CompRefs... consumers) :
+                   CompRef... consumers) :
                    queue{std::make_shared<BlockingQueue<T>>()},
-                   no_subscribers{sizeof... (CompRefs)} {}
+                   no_subscribers{sizeof... (CompRef)} {}
 
 template <typename T>
 void PipelineBuffer<T>::
@@ -41,13 +41,13 @@ std::optional<T> PipelineBuffer<T>::
 }
 
 template <typename T>
-template <typename ProdRef, typename... CompRefs>
+template <typename ProdRef, typename... CompRef>
 std::shared_ptr<PipelineBuffer<T>> PipelineBuffer<T>::
     PipelineBuffer_factory(ProdRef producer,
-                            CompRefs... consumers) {
+                            CompRef... consumers) {
                             std::shared_ptr<PipelineBuffer<T>> new_pipeline_buffer = std::make_shared<PipelineBuffer<T>>(producer, consumers...);
                             producer.prod_ref.bindOutput(new_pipeline_buffer);
-                            ((consumers.comp_ref.template bindInput<consumers>(new_pipeline_buffer)), ...);
+                            ((consumers.comp_ref.template bindInput<CompRef>(new_pipeline_buffer)), ...);
                             return new_pipeline_buffer;
                             }
     

@@ -26,7 +26,7 @@ int gen_1() {
   return state++;
 };
 
-int work(int x) { return x + 1; };
+int work(int x) { return x * 2; };
 
 void print_input(int x) { printf("%i\n", x); }
 
@@ -41,25 +41,33 @@ int main() {
   std::function<int(int)> Work = work;
   std::function<void(int)> Print_Input = print_input;
 
-  Component<PipelineBuffer<int>> start{Gen_1};
+  Component<PipelineBuffer<int>> start_component{Gen_1};
+
+  Component<PipelineBuffer<int>, PipelineBuffer<int>> middle_component{Work};
 
   ComponentConsumeOnly<PipelineBuffer<int>> end_component{Print_Input};
 
+  component_output_ref<Component<PipelineBuffer<int>>> start_ref{start_component};
+
+  component_input_ref<0L, Component<PipelineBuffer<int>, PipelineBuffer<int>>> middle_input_ref{middle_component};
+  component_output_ref<Component<PipelineBuffer<int>, PipelineBuffer<int>>> middle_output_ref{middle_component};
+
   component_input_ref<0L, ComponentConsumeOnly<PipelineBuffer<int>>> end_ref{end_component};
-  component_output_ref<Component<PipelineBuffer<int>>> start_ref{start};
+  
 
-  auto pb = PipelineBuffer<int>::PipelineBuffer_factory<component_output_ref<Component<PipelineBuffer<int>>>,
-                                                        component_input_ref<0L, ComponentConsumeOnly<PipelineBuffer<int>>>>(start_ref, end_ref);
+  auto pb = PipelineBuffer<int>::PipelineBuffer_factory(start_ref, middle_input_ref);
 
-  std::thread Start{start, std::ref(sig)};
-  // std::thread WorkThread{work_component, std::ref(sig)};
+  auto pb2 = PipelineBuffer<int>::PipelineBuffer_factory(middle_output_ref, end_ref);
+
+  std::thread Start{start_component, std::ref(sig)};
+  std::thread WorkThread{middle_component, std::ref(sig)};
   std::thread End{end_component, std::ref(sig)};
 
   std::this_thread::sleep_for(std::chrono::seconds(2));
   sig = false;
 
   Start.join();
-  // WorkThread.join();
+  WorkThread.join();
   End.join();
 
   // sig = false;
