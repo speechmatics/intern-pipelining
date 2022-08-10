@@ -2,7 +2,6 @@
 #include "component_decl.h"
 #include "pipeline_stages.h"
 #include "component.h"
-#include "component_gen_only.h"
 #include "component_consume_only.h"
 #include "pipeline_buffer_decl.h"
 #include "pipeline_buffer.h"
