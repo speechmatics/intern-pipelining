@@ -76,6 +76,7 @@ int main() {
 
   Start.join();
   WorkThread.join();
+  WorkThread2.join();
   End.join();
 
   // sig = false;
