@@ -1,6 +1,8 @@
 #pragma once
 #include "blocking_queue_decl.h"
 #include "pipeline_buffer_decl.h"
+#include <condition_variable>
+#include <cstddef>
 #include <memory>
 #include <mutex>
 
@@ -10,7 +12,11 @@ PipelineBuffer<T>::
     PipelineBuffer(ProdRef producer,
                    CompRef... consumers) :
                    queue{std::make_shared<BlockingQueue<T>>()},
-                   no_subscribers{sizeof... (CompRef)} {}
+                   no_subscribers{sizeof... (CompRef)},
+                   cur_count(sizeof... (CompRef)),
+                   generation{0},
+                   mut{},
+                   cond_var{} {}
 
 template <typename T>
 void PipelineBuffer<T>::
@@ -21,23 +27,29 @@ void PipelineBuffer<T>::
 template <typename T>
 std::optional<T> PipelineBuffer<T>::
     pop(std::atomic_bool& sig) {
-        no_subscribers_finished++;
-        cond_var.notify_all();
         std::unique_lock<std::mutex> lock{mut};
-        while (no_subscribers_finished < no_subscribers) {
-            if (!sig) {
-                return {};
-            }
-            cond_var.wait(lock);
+        std::size_t _generation = generation;
+        if (!--cur_count) {
+            // cur_count is 0 meaning all threads are ready to fetch
+            // this means we can fetch the item as a copy
+            // and pop from the queue
+            // all threads read this copy
+            ++generation;
+            cur_count = no_subscribers;
+            data_copy = queue->pop(sig);
+            cond_var.notify_all();
+        } else {
+            cond_var.wait(lock, [this, _generation, &sig] { 
+                // We should stop waiting either when sig is unset,
+                // or everyone is ready for the next generation
+                if (!sig) return true;
+                return _generation != generation; 
+                });
         }
-        std::optional<T> val = queue->peek(sig);
-        if (!val.has_value()) return val;
-        if (++no_subscribers_ready == no_subscribers) {
-            queue->pop(sig);
-            no_subscribers_finished = 0;
-            no_subscribers_ready = 0;
-        }
-        return val;
+        if (!sig) return {};
+        // Threads access data_copy
+        return data_copy;
+
 }
 
 template <typename T>

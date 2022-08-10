@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #include <memory>
 #include <vector>
 #include <atomic>
@@ -26,10 +27,11 @@ class PipelineBuffer {
         std::shared_ptr<BlockingQueue<T>> queue;
         // How to make no_subscribers const?
         std::size_t no_subscribers;
-        std::atomic_int no_subscribers_finished = 0;
-        std::atomic_int no_subscribers_ready = 0;
+        std::size_t cur_count;
+        std::size_t generation;
         std::mutex mut;
         std::condition_variable cond_var;
+        std::optional<T> data_copy;
 
         
     public:
