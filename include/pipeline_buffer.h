@@ -57,7 +57,7 @@ template <typename ProdRef, typename... CompRef>
 std::shared_ptr<PipelineBuffer<T>> PipelineBuffer<T>::
     PipelineBuffer_factory(ProdRef producer,
                             CompRef... consumers) {
-                            std::shared_ptr<PipelineBuffer<T>> new_pipeline_buffer = std::make_shared<PipelineBuffer<T>>(producer, consumers...);
+                            std::shared_ptr<PipelineBuffer<T>> new_pipeline_buffer{new PipelineBuffer<T>(producer, consumers...)};
                             producer.prod_ref.bindOutput(new_pipeline_buffer);
                             ((consumers.comp_ref.template bindInput<CompRef>(new_pipeline_buffer)), ...);
                             return new_pipeline_buffer;

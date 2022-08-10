@@ -32,15 +32,11 @@ class PipelineBuffer {
         std::mutex mut;
         std::condition_variable cond_var;
         std::optional<T> data_copy;
-
-        
-    public:
-        // Need a way to make this constructor private,
-        // But it must be called by std::make_shared
         template <typename ProdRef, typename... CompRefs>
         PipelineBuffer(ProdRef producer,
                        CompRefs... consumers);
-
+        
+    public:
         template <typename ProdRef, typename... CompRefs>
         static std::shared_ptr<PipelineBuffer> PipelineBuffer_factory(ProdRef producer,
                                                                       CompRefs... consumers);

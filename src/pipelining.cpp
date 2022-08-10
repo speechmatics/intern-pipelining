@@ -28,7 +28,9 @@ int gen_1() {
 
 int work(int x) { return x * 2; };
 
-void print_input(int x) { printf("%i\n", x); }
+void work2(int x) { std::cout << "work2: " << x << std::endl; }
+
+void print_input(int x) { std::cout << "print_input: " << x << std::endl; }
 
 int main() {
   EASY_PROFILER_ENABLE;
@@ -39,11 +41,14 @@ int main() {
 
   std::function<int()> Gen_1 = gen_1;
   std::function<int(int)> Work = work;
+  std::function<void(int)> Work2 = work2;
   std::function<void(int)> Print_Input = print_input;
 
   Component<PipelineBuffer<int>> start_component{Gen_1};
 
   Component<PipelineBuffer<int>, PipelineBuffer<int>> middle_component{Work};
+
+  ComponentConsumeOnly<PipelineBuffer<int>> middle_component_2{Work2};
 
   ComponentConsumeOnly<PipelineBuffer<int>> end_component{Print_Input};
 
@@ -52,15 +57,18 @@ int main() {
   component_input_ref<0L, Component<PipelineBuffer<int>, PipelineBuffer<int>>> middle_input_ref{middle_component};
   component_output_ref<Component<PipelineBuffer<int>, PipelineBuffer<int>>> middle_output_ref{middle_component};
 
+  component_input_ref<0L, ComponentConsumeOnly<PipelineBuffer<int>>> middle_input_2_ref{middle_component_2};
+
   component_input_ref<0L, ComponentConsumeOnly<PipelineBuffer<int>>> end_ref{end_component};
   
 
-  auto pb = PipelineBuffer<int>::PipelineBuffer_factory(start_ref, middle_input_ref);
+  auto pb = PipelineBuffer<int>::PipelineBuffer_factory(start_ref, middle_input_ref, middle_input_2_ref);
 
   auto pb2 = PipelineBuffer<int>::PipelineBuffer_factory(middle_output_ref, end_ref);
 
   std::thread Start{start_component, std::ref(sig)};
   std::thread WorkThread{middle_component, std::ref(sig)};
+  std::thread WorkThread2{middle_component_2, std::ref(sig)};
   std::thread End{end_component, std::ref(sig)};
 
   std::this_thread::sleep_for(std::chrono::seconds(2));
