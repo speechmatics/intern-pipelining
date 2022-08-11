@@ -5,12 +5,14 @@
 #include "component_consume_only.h"
 #include "pipeline_buffer_decl.h"
 #include "pipeline_buffer.h"
+#include "pipeline_orchestrator_decl.h"
 #include <chrono>
 #include <cstdio>
 #include <exception>
 #include <iostream>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <utility>
 #include <atomic>
@@ -35,6 +37,16 @@ int main() {
   EASY_PROFILER_ENABLE;
   EASY_FUNCTION();
   printf("Hello World!\n");
+
+  constexpr static_map smap{{
+    kv{std::string_view{"Hello"}, 0},
+    {{"World!"}, 1}
+  }};
+  constexpr auto x = smap.get(std::string_view("World!"));
+
+  std::cout << "static_map: " << x << std::endl;
+
+  return 0;
 
   std::atomic_bool sig{true};
 
