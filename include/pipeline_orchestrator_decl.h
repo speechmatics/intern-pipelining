@@ -2,6 +2,11 @@
 #include <array>
 #include <algorithm>
 #include <cstddef>
+#include <string>
+#include <functional>
+#include <string_view>
+#include "component.h"
+#include "component_decl.h"
 
 template <std::size_t N>
 struct static_string {
@@ -35,3 +40,30 @@ struct static_map {
 
     constexpr decltype(std::declval<kv>().v) get(decltype(std::declval<kv>().k) key) const;
 };
+
+template <typename out, typename... in>
+struct pipeline_module {
+    using function_type = std::function<
+            out(const in...)
+        >;
+
+    std::string_view component_name;
+    function_type work_function;
+    std::array<std::string_view, sizeof... (in)> input_names;
+
+    constexpr pipeline_module(std::string_view component_name,
+                              function_type work_function);
+                              
+    constexpr pipeline_module(std::string_view component_name,
+                              function_type work_function,
+                              std::string_view input_name...);
+};
+
+template <typename out, typename... in>
+pipeline_module(std::string_view component_name,
+                              std::function<out(in...)> work_function) -> pipeline_module<out>;
+
+template <typename out, typename... in>
+pipeline_module(std::string_view component_name,
+                              std::function<out(in...)> work_function,
+                              std::string_view input_name...) -> pipeline_module<out, in...>;

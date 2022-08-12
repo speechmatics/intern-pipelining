@@ -1,5 +1,6 @@
 #include "blocking_queue.h"
 #include "component_decl.h"
+#include "pipeline_orchestrator_decl.h"
 #include "pipeline_stages.h"
 #include "component.h"
 #include "component_consume_only.h"
@@ -44,9 +45,7 @@ int main() {
   }};
   constexpr auto x = smap.get(std::string_view("World!"));
 
-  std::cout << "static_map: " << x << std::endl;
-
-  return 0;
+  std::cout << "static_map: " << x << std::endl;  
 
   std::atomic_bool sig{true};
 
@@ -54,6 +53,13 @@ int main() {
   std::function<int(int)> Work = work;
   std::function<void(int)> Work2 = work2;
   std::function<void(int)> Print_Input = print_input;
+
+  pipeline_module one{std::string_view{"start"}, Gen_1};
+  pipeline_module two{std::string_view{"two"}, Work, std::string_view{"start"}};
+  pipeline_module three{std::string_view{"three"}, Work2, std::string_view{"start"}};
+  pipeline_module four{std::string_view{"four"}, Print_Input, std::string_view{"two"}};
+
+  return 0;
 
   Component<PipelineBuffer<int>> start_component{Gen_1};
 
