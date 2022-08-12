@@ -5,7 +5,7 @@
 #include "component_consume_only.h"
 #include "pipeline_buffer_decl.h"
 #include "pipeline_buffer.h"
-#include "pipeline_orchestrator_decl.h"
+#include "pipeline_orchestrator.h"
 #include <chrono>
 #include <cstdio>
 #include <exception>
