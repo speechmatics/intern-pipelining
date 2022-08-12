@@ -1,3 +1,4 @@
+#pragma once
 #include "pipeline_orchestrator_decl.h"
 
 template <std::size_t N>

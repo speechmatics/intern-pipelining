@@ -5,6 +5,7 @@
 #include <string>
 #include <functional>
 #include <string_view>
+#include <variant>
 #include "component.h"
 #include "component_decl.h"
 
@@ -67,3 +68,12 @@ template <typename out, typename... in>
 pipeline_module(std::string_view component_name,
                               std::function<out(in...)> work_function,
                               std::string_view input_name...) -> pipeline_module<out, in...>;
+
+template <typename... PM>
+struct Pipeline {
+    Pipeline(PM... pm);
+
+    void start();
+    
+    void stop();
+};

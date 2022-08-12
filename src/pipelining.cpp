@@ -1,6 +1,5 @@
 #include "blocking_queue.h"
 #include "component_decl.h"
-#include "pipeline_orchestrator_decl.h"
 #include "pipeline_stages.h"
 #include "component.h"
 #include "component_consume_only.h"
@@ -49,15 +48,18 @@ int main() {
 
   std::atomic_bool sig{true};
 
-  std::function<int()> Gen_1 = gen_1;
-  std::function<int(int)> Work = work;
-  std::function<void(int)> Work2 = work2;
-  std::function<void(int)> Print_Input = print_input;
+  std::function Gen_1 = gen_1;
+  std::function Work = work;
+  std::function Work2 = work2;
+  std::function Print_Input = print_input;
 
   pipeline_module one{std::string_view{"start"}, Gen_1};
   pipeline_module two{std::string_view{"two"}, Work, std::string_view{"start"}};
   pipeline_module three{std::string_view{"three"}, Work2, std::string_view{"start"}};
   pipeline_module four{std::string_view{"four"}, Print_Input, std::string_view{"two"}};
+
+  Pipeline p{one, two, three, four};
+  p.start();
 
   return 0;
 
