@@ -50,3 +50,14 @@ constexpr pipeline_module<out, in...>::pipeline_module(
     std::string_view component_name,
     function_type work_function,
     std::string_view input_name...) : component_name{component_name}, work_function{work_function}, input_names{{input_name}} {}
+
+template <typename... PM>
+Pipeline<PM...>::Pipeline(PM... pm) : components{pm.work_function...}, pipeline_buffers(make_buffers(components, pm...)) {
+
+};
+
+template <typename... PM>
+void Pipeline<PM...>::start() {};
+
+template <typename... PM> 
+void Pipeline<PM...>::stop() {};
