@@ -15,6 +15,11 @@ struct component_input_ref {
     static constexpr std::size_t input_num = N;
 };
 
+template <std::size_t N, typename C>
+auto component_input_ref_factory(C& comp) {
+    return component_input_ref<N, C>{comp};
+}
+
 template <typename C>
 struct component_output_ref {
     C& prod_ref;

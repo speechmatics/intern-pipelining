@@ -40,16 +40,10 @@ constexpr decltype(std::declval<kv>().v) static_map<N, kv>::get(decltype(std::de
     throw "Item not in static_map!";
 }
 
-template <typename out, typename... in>
-constexpr pipeline_module<out, in...>::pipeline_module(
-    std::string_view component_name,
-    function_type work_function) : component_name{component_name}, work_function{work_function}, input_names{{}} {};
-
-template <typename out, typename... in>
-constexpr pipeline_module<out, in...>::pipeline_module(
-    std::string_view component_name,
-    function_type work_function,
-    std::string_view input_name...) : component_name{component_name}, work_function{work_function}, input_names{{input_name}} {}
+template <typename ComponentName, typename InputNameTuple, typename out, typename... in>
+template <typename ...InputName>
+pipeline_module<ComponentName, InputNameTuple, out, in...>::pipeline_module(ComponentName component_name, function_type work_function, InputName... input_names) : 
+    work_function{work_function} {};
 
 template <typename... PM>
 Pipeline<PM...>::Pipeline(PM... pm) : components{pm.work_function...}, pipeline_buffers(make_buffers(components, pm...)) {
