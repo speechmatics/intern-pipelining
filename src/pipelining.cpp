@@ -18,7 +18,7 @@
 #include <atomic>
 #include <functional>
 
-#include <easy/profiler.h>
+// #include <easy/profiler.h>
 
 constexpr int num_loops = 100000;
 
@@ -34,8 +34,8 @@ void work2(int x) { std::cout << "work2: " << x << std::endl; }
 void print_input(int x) { std::cout << "print_input: " << x << std::endl; }
 
 int main() {
-  EASY_PROFILER_ENABLE;
-  EASY_FUNCTION();
+  // EASY_PROFILER_ENABLE;
+  // EASY_FUNCTION();
   printf("Hello World!\n");
 
   constexpr static_map smap{{
@@ -53,10 +53,10 @@ int main() {
   std::function Work2 = work2;
   std::function Print_Input = print_input;
 
-  pipeline_module one{std::string_view{"start"}, Gen_1};
-  pipeline_module two{std::string_view{"two"}, Work, std::string_view{"start"}};
-  pipeline_module three{std::string_view{"three"}, Work2, std::string_view{"start"}};
-  pipeline_module four{std::string_view{"four"}, Print_Input, std::string_view{"two"}};
+  pipeline_module one{name<"start">, Gen_1};
+  pipeline_module two{name<"two">, Work, name<"start">};
+  pipeline_module three{name<"three">, Work2, name<"start">};
+  pipeline_module four{name<"four">, Print_Input, name<"two">};
 
   Pipeline p{one, two, three, four};
   p.start();
@@ -105,7 +105,7 @@ int main() {
   // stage_1.join();
   // stage_2.join();
   // stage_3.join();
-  int no_blocks_written = profiler::dumpBlocksToFile("pipelining.prof");
-  printf("Wrote %i easy_profiler blocks\n", no_blocks_written);
+  // int no_blocks_written = profiler::dumpBlocksToFile("pipelining.prof");
+  // printf("Wrote %i easy_profiler blocks\n", no_blocks_written);
   return 0;
 }

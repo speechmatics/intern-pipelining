@@ -26,6 +26,9 @@ struct component_output_ref {
     using value_type = typename C::output_value_type;
 };
 
+template <typename C>
+component_output_ref(C& producer) -> component_output_ref<C>;
+
 template <typename T>
 class PipelineBuffer {
     private:
