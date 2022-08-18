@@ -46,9 +46,12 @@ pipeline_module<ComponentName, InputNameTuple, out, in...>::pipeline_module(Comp
     work_function{work_function} {};
 
 template <typename... PM>
-Pipeline<PM...>::Pipeline(PM... pm) : components{pm.work_function...}, pipeline_buffers(make_buffers(components, pm...)) {
-
-};
+Pipeline<PM...>::Pipeline(PM... pm) : components{pm.work_function...}, pipeline_buffers(make_buffers(components, pm...)), threads{
+    std::apply([&](auto&... component) {
+        return std::array<std::thread, sizeof...(PM)> {
+            std::thread([&component, this](){ component(sig); })...
+        };
+    }, components)} {};
 
 template <typename... PM>
 void Pipeline<PM...>::start() {};
