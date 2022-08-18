@@ -1,11 +1,16 @@
 #pragma once
 #include <array>
 #include <algorithm>
+#include <atomic>
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <functional>
 #include <string_view>
+#include <thread>
+#include <tuple>
 #include <type_traits>
+#include <utility>
 #include <variant>
 #include "component.h"
 #include "component_consume_only_decl.h"
@@ -25,7 +30,7 @@ struct static_string {
 
 template <static_string str>
 struct name_t {
-  constexpr static auto value = str;
+  constexpr static auto value = std::string_view{str.buf.data(), str.buf.size()};
 };
 
 template <static_string str>
@@ -53,52 +58,64 @@ struct static_map {
     constexpr decltype(std::declval<kv>().v) get(decltype(std::declval<kv>().k) key) const;
 };
 
-template <typename out, typename... in>
+template <typename ComponentName, typename InputNameTuple, typename out, typename... in>
 struct pipeline_module {
     using function_type = std::function<
             out(const in...)
         >;
 
-    std::string_view component_name;
     function_type work_function;
-    std::array<std::string_view, sizeof... (in)> input_names;
 
     using component_type = std::conditional_t<std::is_same_v<void, out>, 
-                                              ComponentConsumeOnly<in...>, 
-                                              Component<out, in...>>;
+                                              ComponentConsumeOnly<PipelineBuffer<in>...>, 
+                                              Component<PipelineBuffer<out>, PipelineBuffer<in>...>>;
     
     using output_type = out;
+    using component_name_type = ComponentName;
+    using input_name_tuple_type = InputNameTuple;
 
-    constexpr pipeline_module(std::string_view component_name,
-                              function_type work_function);
-                              
-    constexpr pipeline_module(std::string_view component_name,
-                              function_type work_function,
-                              std::string_view input_name...);
+    template <typename ...InputName>
+    pipeline_module(ComponentName, function_type work_function, InputName...);
 };
 
-template <typename out, typename... in>
-pipeline_module(std::string_view component_name,
-                              std::function<out(in...)> work_function) -> pipeline_module<out>;
+template <typename ComponentName, typename out, typename ...in, typename ...InputName>
+pipeline_module(ComponentName, std::function<out(in...)>, InputName...)
+    -> pipeline_module<ComponentName, std::tuple<InputName...>, out, in...>;
 
-template <typename out, typename... in>
-pipeline_module(std::string_view component_name,
-                              std::function<out(in...)> work_function,
-                              std::string_view input_name...) -> pipeline_module<out, in...>;
+template <typename T, std::size_t N>
+struct static_vector {
+  std::array<T, N> buf{};
+  std::size_t size = 0;
+
+  constexpr void push_back(T t);
+};
+
+struct input_backref {
+  std::size_t pm_idx{};
+  std::size_t input_idx{};
+};
 
 template <typename... PM>
 struct Pipeline {
-    std::tuple<typename PM::component_type...> components;
-    std::tuple<std::conditional_t<std::is_same_v<void, typename PM::out_type>, std::monostate, std::shared_ptr<PipelineBuffer<typename PM::out_type>>>...> pipeline_buffers;
-    Pipeline(PM... pm);
+  std::tuple<typename PM::component_type...> components;
+  // changed out_type to output_type
+  using pipeline_buffers_t = std::tuple<std::conditional_t<std::is_same_v<void, typename PM::output_type>, std::monostate, std::shared_ptr<PipelineBuffer<typename PM::output_type>>>...>;
+  pipeline_buffers_t pipeline_buffers;
+  std::atomic_bool sig{true};
+  std::array<std::thread, sizeof... (PM)> threads;
 
-    void start();
-    
-    void stop();
-
-    static constexpr auto make_buffers(auto& components, PM... pm) {
-        auto names_to_indices = [&]<std::size_t... Idx>(std::index_sequence<Idx...>){
-            return static_map{kv{pm.component_name, Idx}...};
-        }(std::index_sequence_for<PM...>{});
+  Pipeline(PM... pm);
+  
+  ~Pipeline() {
+    for (auto& thread: threads) {
+      thread.join();
     }
+  }
+
+  void start();
+  
+  void stop();
+
+  private:
+    static constexpr pipeline_buffers_t make_buffers(auto& components, PM... pm);
 };
