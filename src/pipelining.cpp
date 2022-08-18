@@ -20,11 +20,12 @@
 
 #include <easy/profiler.h>
 
-constexpr int num_loops = 100000;
-
-int gen_1() { 
-  static int state = 0;
-  return state++;
+class Gen_1_Class {
+  int state = 0;
+  public:
+    int operator()() {
+      return state++;
+    }
 };
 
 int work(int x) { return x * 2; };
@@ -38,7 +39,7 @@ int main() {
   EASY_FUNCTION();
   printf("Hello World!\n");
 
-  std::function Gen_1 = gen_1;
+  std::function Gen_1 = Gen_1_Class{};
   std::function Work = work;
   std::function Work2 = work2;
   std::function Print_Input = print_input;
