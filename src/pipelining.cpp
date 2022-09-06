@@ -1,6 +1,5 @@
 #include "blocking_queue.h"
 #include "component_decl.h"
-#include "pipeline_stages.h"
 #include "component.h"
 #include "component_consume_only.h"
 #include "pipeline_buffer_decl.h"
@@ -50,7 +49,6 @@ int main() {
   pipeline_module four{name<"four">, Print_Input, name<"two">};
 
   Pipeline p{one, two, three, four};
-  p.start();
 
   int no_blocks_written = profiler::dumpBlocksToFile("pipelining.prof");
   printf("Wrote %i easy_profiler blocks\n", no_blocks_written);

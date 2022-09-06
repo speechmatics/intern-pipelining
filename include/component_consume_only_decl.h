@@ -6,6 +6,13 @@
 #include "blocking_queue.h"
 #include "blocking_queue_decl.h"
 
+// The design of the pipeline is such that the pipeline_buffers are between components
+// This means that we need a component at either end (at least)
+// The component(s) at the beginning of the pipeline take no inputs and produce a single output
+// These beginning components can be regular components as the number of input arguments to a component
+// can be 0, however since every component must produce an output, we have the fact that we cannot use
+// a regular component at the end of the pipeline
+// As a result, we have a special ComponentConsumeOnly which take 0 or more inputs, but produce no output
 template <typename... in>
 class ComponentConsumeOnly {
     private:

@@ -5,6 +5,10 @@
 template <typename... in>
 ComponentConsumeOnly<in...>::ComponentConsumeOnly(function_type work_function) : work_function{std::move(work_function)} {};
 
+// Very similar implementation to component.h,
+// however after the work function is applied,
+// nothing is pushed into the output queue,
+// since there is no output queue
 template <typename... in>
 void ComponentConsumeOnly<in...>::operator()(std::atomic_bool& sig) {
     while(sig) {
