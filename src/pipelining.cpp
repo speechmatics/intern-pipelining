@@ -1,3 +1,5 @@
+// Copyright 2022 Cantab Research Ltd.
+// Licensed under the MIT license. See LICENSE.txt in the project root for details.
 #include "blocking_queue.h"
 #include "component_decl.h"
 #include "component.h"

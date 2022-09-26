@@ -1,3 +1,5 @@
+// Copyright 2022 Cantab Research Ltd.
+// Licensed under the MIT license. See LICENSE.txt in the project root for details.
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;

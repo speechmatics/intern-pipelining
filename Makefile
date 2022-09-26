@@ -1,3 +1,6 @@
+# Copyright 2022 Cantab Research Ltd.
+# Licensed under the MIT license. See LICENSE.txt in the project root for details.
+
 .PHONY: all
 all:
 	cd build/; \

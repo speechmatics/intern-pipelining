@@ -1,3 +1,6 @@
+# Copyright 2022 Cantab Research Ltd.
+# Licensed under the MIT license. See LICENSE.txt in the project root for details.
+
 cmake_minimum_required(VERSION 3.20)
 
 project(Pipelining)
