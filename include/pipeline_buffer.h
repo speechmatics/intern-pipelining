@@ -1,3 +1,5 @@
+// Copyright 2022 Cantab Research Ltd.
+// Licensed under the MIT license. See LICENSE.txt in the project root for details.
 #pragma once
 #include "blocking_queue_decl.h"
 #include "pipeline_buffer_decl.h"
